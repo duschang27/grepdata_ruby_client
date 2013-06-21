@@ -4,6 +4,10 @@ module GrepdataClient
       "%Y%m%d%H%M"
     end
     
+    def self.cache_buster
+      Time.now.getutc.to_i.to_s
+    end
+    
     def self.default_expiration
       (Time.now.utc + (24*60*60)).strftime Utils.date_format
     end
@@ -64,6 +68,10 @@ module GrepdataClient
     
       result[:api_key] = params[:api_key] if params[:api_key]
       result[:token] = params[:token] if params[:token]
+
+      result[:signature] = params[:signature] if params[:signature]
+      result[:restricted] = params[:restricted] if params[:restricted]
+      result[:expiration] = params[:expiration] if params[:expiration]
       result
     end
   end

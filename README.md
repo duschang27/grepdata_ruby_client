@@ -1,6 +1,6 @@
 # GrepdataClient
 
-TODO: Write a gem description
+Official Ruby client for Grepdata API
 
 ## Installation
 
@@ -9,8 +9,16 @@ TODO: Write a gem description
 or if you use a Gemfile:
 
     gem 'grepdata_client'
+    
+## Publishing Events
 
-## Basic Usage
+    require 'rubygems'
+    require 'grepdata_client'
+
+    client = GrepdataClient::Client.new(token: "054a9c9ade7dcf325a3aab542ebd73b5", default_endpoint: 'demonstration')
+    client.track 'play', data: { age: 18 }
+
+## Querying Data 
 
     require 'rubygems'
     require 'grepdata_client'
@@ -51,7 +59,7 @@ or if you use a Gemfile:
     req = client.funneling params
     puts req.get_result
 
-## Generate access key
+## Generating access key
 
     require 'rubygems'
     require 'grepdata_client'
@@ -75,7 +83,7 @@ or if you use a Gemfile:
       
     puts access_key
 
-## Query with access key
+## Querying with access key
 
     require 'rubygems'
     require 'grepdata_client'
@@ -101,6 +109,47 @@ or if you use a Gemfile:
 
     req = client.query_with_token params, access_key
     puts req.get_result
+    
+    #get url of the request
+    puts req.get_url
+
+## Running Request in Parallel
+
+    require 'rubygems'
+    require 'grepdata_client'
+
+    #set parallel to true
+    client = GrepdataClient::Client.new(
+      :default_endpoint => 'demonstration', 
+      :token => "054a9c9ade7dcf325a3aab542ebd73b5",
+      :api_key => "0ac15f3688987af763c67412066e3378",
+      :parallel => true)
+    
+    # query or publish data.  Requests will be queued up
+    ...
+    
+    # execute the queued requests and run them in parallel
+    client.run_requests
+    
+We use Typhoeus to handle parallel requests.  You can also pass in your own hydra queue
+
+    require 'rubygems'
+    require 'grepdata_client'
+
+    #set parallel to true and pass in hydra queue
+    hydra = ::Typhoeus::Hydra.new
+    client = GrepdataClient::Client.new(
+      :default_endpoint => 'demonstration', 
+      :token => "054a9c9ade7dcf325a3aab542ebd73b5",
+      :api_key => "0ac15f3688987af763c67412066e3378",
+      :parallel => true,
+      :parallel_manager => hydra)
+      
+    # query or publish data.  Requests will be queued up
+    ...
+    
+    # this will execute the queued requests as well
+    hydra.run
 
 ## Copyright
 

@@ -11,19 +11,73 @@ require "grepdata_client/utils"
 module GrepdataClient
   class Client
   
-    attr_accessor :api_url, :api_key, :token, :parallel, :parallel_manager
+    attr_accessor :api_url, :api_key, :token, :send_with_headers,
+      :default_endpoint, :endpoint_map,
+      :parallel, :parallel_manager
     
     CONFIG = {
       :api_url => "https://api.grepdata.com/v1",
+      :beacon_url => "https://beacon.grepdata.com/v1"
     }
     
     def initialize(config)
-      @api_key, @token = config.values_at(:api_key, :token) 
+      @api_key, @token, @default_endpoint = 
+        config.values_at(:api_key, :token, :default_endpoint) 
+        
+      @send_with_headers = config[:send_with_headers] || false
+      @endpoint_map = config[:endpoint_map] || {}
       @api_url = config[:api_url] || CONFIG[:api_url]
+      @beacon_url = config[:beacon_url] || CONFIG[:beacon_url]
+      
       @parallel = config[:parallel] || false
+      
       if config[:parallel_manager]
         @parallel_manager = config[:parallel_manager] 
       end
+    end
+    
+    def track(event, options)
+      token = options[:token] || @token
+      endpoint = @endpoint_map[event.to_sym] || @endpoint_map[event] || @default_endpoint
+      data = options[:data]
+      
+      Utils.check_attributes "Request", 
+        params: { token: token, endpoint: endpoint, data: data},
+        required: {
+          token: String,
+          endpoint: String,
+          data: Hash
+        }
+    
+      params = {
+        event: event,
+        q: data.to_json,
+        cb: Utils.cache_buster,
+        token: token
+      }
+      
+      params[:t] = options[:timestamp] if options[:timestamp]
+      params[:domain] = options[:domain] if options[:domain]
+      params[:ua] = options[:user_agent] if options[:user_agent]
+      params[:r] = options[:referer] if options[:referer]
+      params[:ip] = options[:ip] if options[:ip]
+      params[:visitor] = options[:visitor] if options[:visitor]
+      params[:session] = options[:session] if options[:session]
+      
+      url = "#{@beacon_url}/#{endpoint}"
+      
+      request = Typhoeus::Request.new url, params: params, timeout: 5
+      
+      if @parallel
+        unless @parallel_manager
+          @parallel_manager = ::Typhoeus::Hydra.new 
+        end
+        @parallel_manager.queue request
+      else
+        request.run
+      end
+      
+      request
     end
 
     def query(params)
@@ -32,7 +86,7 @@ module GrepdataClient
       
       Utils.preprocess_dates params, [:start_date, :end_date]
       
-      Utils.check_attributes "params", 
+      Utils.check_attributes "Request", 
         params: params,
         required: {
           api_key: String, 
@@ -55,7 +109,7 @@ module GrepdataClient
       
       Utils.preprocess_dates params, [:start_date, :end_date]
       
-      Utils.check_attributes "params",
+      Utils.check_attributes "Request",
         params: params,
         required: {
           api_key: String, 
@@ -76,7 +130,7 @@ module GrepdataClient
     def dimensions(params)
       params[:api_key] = params[:api_key] || @api_key
       
-      Utils.check_attributes "params",
+      Utils.check_attributes "Request",
         params: params,
         required: { 
           api_key: String, 
@@ -93,7 +147,7 @@ module GrepdataClient
       Utils.preprocess_dates params, [:start_date, :end_date]
       Utils.preprocess_dates access_key, [:expiration]
       
-      Utils.check_attributes "params", 
+      Utils.check_attributes "Request", 
         params: params,
         required: {
           token: String, 
@@ -113,8 +167,17 @@ module GrepdataClient
           restricted: String,
           expiration: String
         }
+    
+      headers = {}  
+      if @send_with_headers
+        headers = access_key
+      else
+        params[:signature] = access_key[:signature]
+        params[:restricted] = access_key[:restricted]
+        params[:expiration] = access_key[:expiration]
+      end
       
-      request('fetch', params: params, headers: access_key)
+      request('fetch', params: params, headers: headers)
     end
     
     def run_requests
