@@ -15,7 +15,7 @@ or if you use a Gemfile:
     require 'rubygems'
     require 'grepdata_client'
 
-    client = GrepdataClient::Client.new(token: "054a9c9ade7dcf325a3aab542ebd73b5", default_endpoint: 'demonstration')
+    client = GrepdataClient::Client.new(:token => "054a9c9ade7dcf325a3aab542ebd73b5", :default_endpoint => 'demonstration')
     client.track 'play', data: { age: 18 }
 
 ## Querying Data 
