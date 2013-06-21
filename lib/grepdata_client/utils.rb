@@ -1,7 +1,7 @@
 module GrepdataClient
   module Utils
     def self.date_format
-      "%Y%m%d%H00"
+      "%Y%m%d%H%M"
     end
     
     def self.default_expiration
@@ -34,7 +34,7 @@ module GrepdataClient
     
     def self.preprocess_dates(params, attributes)
       attributes.each do |attr|
-        date = Date.parse params[attr]
+        date = DateTime.parse params[attr]
         params[attr] = date.strftime Utils.date_format
       end
     end

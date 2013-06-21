@@ -122,7 +122,7 @@ module GrepdataClient
     end
             
     def request(action, options)      
-      query = Grepdata::Client::DataRequest.new action, 
+      query = GrepdataClient::DataRequest.new action, 
                 url: @api_url, 
                 params: options[:params], 
                 headers: options[:headers]

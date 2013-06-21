@@ -18,9 +18,6 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "base64"
-  spec.add_dependency "openssl"
-  spec.add_dependency "Date"
   spec.add_dependency "typhoeus",'~> 0.6.3'
   spec.add_dependency "json", '~> 1.8' if RUBY_VERSION < '1.9'
   

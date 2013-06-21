@@ -5,10 +5,11 @@ module GrepdataClient
     def initialize(action, options)
       @action = action.to_s
       @url = "#{options[:url]}/#{@action}"
-      @headers = options[:headers] || {}
       @params = options[:params] || {}
+      @headers = options[:headers] || {}
       
       params = Utils.format_params @action, @params
+
       @request = ::Typhoeus::Request.new(@url, params: params, headers: @headers)
     end
     
