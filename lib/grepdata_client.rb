@@ -2,7 +2,7 @@ require "typhoeus"
 require 'base64'
 require 'openssl'
 require 'json'
-require 'Date'
+require 'date'
 
 require "grepdata_client/version"
 require "grepdata_client/query"
@@ -102,6 +102,52 @@ module GrepdataClient
       request(__method__, params: params)
     end
     
+    def safe_query(params, options={})
+      params[:token] = params[:token] || @token
+      api_key = params[:api_key] || @api_key
+      params.delete(:api_key)
+      params[:filters] = params[:filters] || {}
+      expiration = options[:expiration] || Utils.default_expiration
+      
+      restricted = ["datamart", "dimensions", "metrics", "filters", "time_interval", "start_date", "end_date"]
+   
+      access_key = generate_access_key(api_key, params:params, restricted:restricted, expiration:expiration)
+      
+      Utils.preprocess_dates params, [:start_date, :end_date]
+      Utils.preprocess_dates access_key, [:expiration]      
+
+      Utils.check_attributes "Request", 
+        params: params,
+        required: {
+          token: String, 
+          datamart: String,
+          dimensions: Array,
+          metrics: Array,
+          filters: Hash,
+          time_interval: String,
+          start_date: String,
+          end_date: String
+        }
+      
+      Utils.check_attributes "access_key",
+        params: access_key,
+        required: { 
+          signature: String, 
+          restricted: String,
+          expiration: String
+        }
+        
+      params[:signature] = access_key[:signature]
+      params[:restricted] = access_key[:restricted]
+      params[:expiration] = access_key[:expiration]
+      
+      query = GrepdataClient::DataRequest.new "fetch", 
+                url: @api_url, 
+                params: params
+
+      query.get_url
+    end
+    
     def funneling(params)
       params[:api_key] = params[:api_key] || @api_key
       params[:filters] = params[:filters] || {}
@@ -138,46 +184,6 @@ module GrepdataClient
         }
               
       request(__method__, params: params)
-    end
-    
-    def query_with_token(params, access_key)
-      params[:token] = params[:token] || @token
-      params[:filters] = params[:filters] || {}
-      
-      Utils.preprocess_dates params, [:start_date, :end_date]
-      Utils.preprocess_dates access_key, [:expiration]
-      
-      Utils.check_attributes "Request", 
-        params: params,
-        required: {
-          token: String, 
-          datamart: String,
-          dimensions: Array,
-          metrics: Array,
-          filters: Hash,
-          time_interval: String,
-          start_date: String,
-          end_date: String
-        }
-      
-      Utils.check_attributes "access_key",
-        params: access_key,
-        required: { 
-          signature: String, 
-          restricted: String,
-          expiration: String
-        }
-    
-      headers = {}  
-      if @send_with_headers
-        headers = access_key
-      else
-        params[:signature] = access_key[:signature]
-        params[:restricted] = access_key[:restricted]
-        params[:expiration] = access_key[:expiration]
-      end
-      
-      request('fetch', params: params, headers: headers)
     end
     
     def run_requests
@@ -240,3 +246,4 @@ module GrepdataClient
     end
   end
 end
+
