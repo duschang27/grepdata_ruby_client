@@ -102,14 +102,14 @@ module GrepdataClient
       request(__method__, params: params)
     end
     
-    def safe_query(params, options={})
+    def get_safe_url(params, options={})
       params[:token] = params[:token] || @token
       api_key = params[:api_key] || @api_key
       params.delete(:api_key)
       params[:filters] = params[:filters] || {}
       expiration = options[:expiration] || Utils.default_expiration
       
-      restricted = ["datamart", "dimensions", "metrics", "filters", "time_interval", "start_date", "end_date"]
+      restricted = options[:restricted] || ["datamart", "dimensions", "metrics", "filters", "time_interval", "start_date", "end_date"]
    
       access_key = generate_access_key(api_key, params:params, restricted:restricted, expiration:expiration)
       

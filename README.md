@@ -138,6 +138,7 @@ Show all dimensions that have been included with events sent to the demonstratio
     
     params = { :endpoint => 'demonstration' }
     req = client.dimensions params
+    
     puts req.get_result
     
 
@@ -148,16 +149,23 @@ with this key can access all your account's data. However, it is possible to saf
 controlled subset of the data externally without exposing your secret key.  
 
 We previously discussed the `client.query` call that generates a normal query, but there is also 
-a second method `client.safe_url` which will return a simple url using your public token
+a second method `client.get_safe_url` which will return a simple url using your public token
 and a special 'signature' access token in place of the api_key. This url will not have your api_key 
-included and so it can safely be passed to a client and called from the client side. The access 
-token acts like a checksum, restricting the resulting query to execute only with the parameters 
-you specify when calling client.safe_url on the server side.
+included and so it can safely be passed to a client and called from the client side. 
+
+The generated signature acts like a checksum, restricting the resulting query to execute only with 
+the restricted parameters you specify when calling `client.get_safe_url` on the server side. By 
+default, with no options set, the generated url will be signed such that no modifications are
+possible. However, looser restrictions can be applied by passing a `restricted` array to the method.
+This array of strings should contain all fields which the client should _not_ be allowed to change. 
+All other fields will be modifiable by the client (with the exception of datamart, which can never 
+be changed). 
 
 An optional `expiration` time is also available when generating the safe url generation to restrict 
 for how long the url will remain valid.
 
 ###Example
+Generate a url that cannot be modified and a few which can be partially modified
 
     require 'rubygems'
     require 'grepdata_client'
@@ -167,19 +175,29 @@ for how long the url will remain valid.
     
     params =  { 
       :datamart => "user_info",
-      :dimensions => %w(country),
+      :dimensions => %w(country gender),
       :metrics => %w(Count),
-      :filters => { :country => %w(US) },
+      :filters => { :country => %w(US UK), :gender => %w(M) },
       :time_interval => "h",
       :start_date => "201306110800",
       :end_date => "201306110900"
     }
     
-    #generate a client safe request that expires at 201312312300
-    safe_url = client.safe_query(params, expiration:"201312312300")
-       
-    puts safe_url
- 
+    #generate a fully restricted, immutable request that expires at 201312312300
+    fully_safe_url = client.get_safe_url(params, expiration:"201312312300")       
+    puts fully_safe_url
+
+    #generate a loosely restricted url that allows the client to modify only the dates and interval
+    restricted = %w(datamart dimensions metrics filters)
+    time_free_safe_url = client.get_safe_url(params, expiration:"201312312300", restricted:restricted)       
+    puts time_free_safe_url
+
+    #individual filters may be locked with dot notation without other filters being locked as well
+    #this will generate a query which allows the gender filters to be changed but not the country    
+    restricted = %w(datamart dimensions metrics filters.country)
+    time_and_gender_free_safe_url = client.get_safe_url(params, expiration:"201312312300", restricted:restricted)       
+    puts time_and_gender_free_safe_url
+
 ## Running Request in Parallel
 
     require 'rubygems'
