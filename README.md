@@ -1,7 +1,7 @@
 GrepdataClient
 
 Official Ruby client for Grepdata API.  More info on GrepData APIs can be found 
-in the [GrepData docs](www.grepdata.com/docs).
+in the [GrepData docs](https://www.grepdata.com/docs).
 
 ## Installation
 
@@ -18,11 +18,11 @@ or if you use a Gemfile:
 The track call allows you to send data into the system, usually from client devices. 
 Setup the client with your public token (token) and the endpoint (default_endpoint), 
 generally either 'prod' or 'qa', to send data. These can be found in 
-[settings](www.grepdata.com/#/settings/account) and 
-[endpoints](www.grepdata.com/#/settings/endpoints) respectively. Each track call 
+[settings](https://www.grepdata.com/#/settings/account) and 
+[endpoints](https://www.grepdata.com/#/settings/endpoints) respectively. Each track call 
 requires a first parameter of event name and a second JSON object with any related 
 dimensions you would like to track along with this event. For more info see 
-[docs for sending data](www.grepdata.com/docs#sending).
+[docs for sending data](https://www.grepdata.com/docs#sending).
 
 ###Example
 
@@ -36,7 +36,7 @@ dimensions you would like to track along with this event. For more info see
 
 Querying data using the GrepData API is almost as simple as sending it. This time
 the client is configured using the private key (api_key) for your account which can 
-be found in [settings](www.grepdata.com/#/settings/account). 
+be found in [settings](https://www.grepdata.com/#/settings/account). 
 
 
 ### Data Query
