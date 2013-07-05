@@ -51,7 +51,9 @@ module GrepdataClient
       result[:dimensions] = params[:dimensions].join(',') if params[:dimensions]
       result[:filters] = params[:filters].to_json if params[:filters]
       result[:time_interval] = params[:time_interval] if params[:time_interval]
-    
+      result[:limit] = params[:limit] if params[:limit]
+      result[:sortMetric] = params[:sortMetric] if params[:sortMetric]
+
       if action == "funneling"
         steps = []
         params[:steps].each do |step|
