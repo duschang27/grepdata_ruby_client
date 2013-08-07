@@ -88,6 +88,8 @@ Grouped by hour and country
     req = client.query params
     puts req.get_result
 
+### Funneling Query
+
 Funneling queries can also be issued from this client. Similar to querying above, the 
 client is configured with the api_key and fired with a set of query parameters:
 + **datamart** (string): the name of the datamart to query (endpoint name for timeseries data)
