@@ -42,22 +42,33 @@ be found in [settings](https://www.grepdata.com/#/settings/account).
 ### Data Query
 
 Each data request requires a params object including the following fields:
-+ **datamart** (string): the name of the datamart to query (endpoint name for timeseries data)
-+ **dimensions** (array): all dimensions to query, be sure to include any dimensions being filtered
-+ **filters** (JSON): an object containing any filters to apply to the selected dimensions, key is dimension name, value is array of valid options
-+ **metrics** (array): all metrics columns you want aggregated and returned
-+ **time_interval** (string): the time granularity to breakout, options are h => hour, d => day, m => month
-+ **start_date** (string): the inclusive start of the query in format yyyymmddhh00
-+ **end_date** (string): the inclusive end of the query in format yyyymmddhh00
++ **datamart** (string - Required): Name of the datamart to query (endpoint name for timeseries data).
++ **dimensions** (array - Required): All dimensions to query, be sure to include any dimensions being filtered.
++ **computed_dimensions** (JSON array): List of any dimensions which have transformation applied on-the-fly at query time.
++ **filters** (JSON): Object containing any filters to apply to the selected dimensions, key is dimension name, value is array of valid options.
++ **metrics** (array - Required): All metrics columns you want aggregated and returned.
++ **time_interval** (string - Required): Time granularity to breakout, options are h => hour, d => day, m => month.
++ **start_date** (string - Required): Inclusive start of the query in format yyyymmddhh00.
++ **end_date** (string - Required): Inclusive end of the query in format yyyymmddhh00.
++ **type** (string): Formatting type for the output, 'full' for one entry per row or 'ui' for a compressed, mapped version.
++ **order_by** (array): Ordered list of dimensions, metrics and/or 'date' indicating the order to return data.
++ **max_rows** (int): Max amount of rows to return back. If the result-set is larger than this max row size, the API will return an error message.
++ **limit** (int): Return the top-n dimension-sets matching the query where n is defined by this parameter. The sorting will be conducted over the total timeperiod, regardless of the time interval (hourly, daily, monthly) chosen. By default, the sorting will occur on the first selected metric, use {limit_by_metric} to change the sort ordering.
++ **limit_after_max** (int): Similar to limit, this value will cause the API to return the top-n rows matching the query if and only if the total rows without limiting would exceed the {max_rows} value (provided or default). Just like {limit}, the sorting will be conducted over the total timeperiod, regardless of the time interval (hourly, daily, monthly) chosen. By default, the sorting will occur on the first selected metric, use {limit_by_metric} to change the sort ordering.
++ **limit_by_metric** (string): Used in conjunction with {limit} to specify the metric to use in sorting the result set. If unset, the sorting will occur on the first selected metric.
++ **offset** (int): Used in conjunction with {limit} and {limit_by_metric} to specify the offset into the results. If unset, the offset is 0, returning the top {limit} results. The offset is 0-indexed, meaning an offset of 5 will ignore the first 5 results and return starting with the 6th. Useful for paging results.
++ **include_remainder** (bool): Used in conjunction with {limit}, {limit_by_metric} and {offset} to determine whether to compute and include a remainder or "Other" entry. If unset or 0, only the top {limit} results will be returned. If set to 1, an extra row will be appended with all the data past top {limit} results aggregated together. If an offset is specified, both the data before {offset} and after {offset} + {limit} will be included.
++ **include_dimension_lists** (bool): If set to true and type=full, the returned json will include a section entitled 'dimensionLists,' a map of dimension name to a list of all values for that dimension in the result set.
++ **include_zero_values** (bool): If set to true and type=full, every returned dimension-set will have a comlete array of values, including entries with metrics of 0 for timeperiods that do not include any data. If false, only the timeperiods and dimensions with data will be returned.
 
 The `client.query` call will return a query object which can be executed with the method `get_result` or printed as 
 a the complete API url that will be executed with `get_url`.
 
 ###Example
-From the user_info datamart
-Select the hour, country and the total count of events 
-Where the country is either US, UK or CA and the event was between 2013/06/11 08:00 and 2013/06/11 09:00
-Grouped by hour and country
+From the user_info datamart  
+Select the hour, country and the total count of events  
+Where the country is either US, UK or CA and the event was between 2013/06/11 08:00 and 2013/06/11 09:00  
+Grouped by hour and country  
 
     require 'rubygems'
     require 'grepdata_client'
@@ -91,10 +102,10 @@ client is configured with the api_key and fired with a set of query parameters:
 + **only_totals** (boolean): a flag to indicate whether to collapse all data from the given timerange into a single total (true) or leave it broken out by time_interval (false)
 
 ###Example
-From the demonstration datamart
-Select the daily counts of play, pause, seek and stop events 
-Where the country is US and the events occurred between 2013/06/12 and 2013/06/19
-Broken out by day and country
+From the demonstration datamart  
+Select the daily counts of play, pause, seek and stop events  
+Where the country is US and the events occurred between 2013/06/12 and 2013/06/19  
+Broken out by day and country  
 
     require 'rubygems'
     require 'grepdata_client'
@@ -109,7 +120,7 @@ Broken out by day and country
       :dimensions => %w(event country),
       :metrics => %w(Count),
       :start_date => "201306120000",
-      :end_date => "201306190000",  
+      :end_date => "201306190000",
       :steps => [
         { :name => "step1: play", :value => "play" },
         { :name => "step2: pause", :value => "pause" },

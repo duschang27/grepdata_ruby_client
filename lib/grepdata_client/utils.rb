@@ -49,10 +49,24 @@ module GrepdataClient
       result[:datamart] = params[:datamart] if params[:datamart]
       result[:metrics] = params[:metrics].join(',') if params[:metrics]
       result[:dimensions] = params[:dimensions].join(',') if params[:dimensions]
+      result[:computed_dimensions] = params[:computed_dimensions] if params[:computed_dimensions]
       result[:filters] = params[:filters].to_json if params[:filters]
       result[:time_interval] = params[:time_interval] if params[:time_interval]
+      result[:type] = params[:type] if params[:type]
+      result[:order_by] = params[:order_by].join(',') if params[:order_by]
+      result[:max_rows] = params[:max_rows] if params[:max_rows]
       result[:limit] = params[:limit] if params[:limit]
-      result[:sortMetric] = params[:sortMetric] if params[:sortMetric]
+      result[:limit_after_max] = params[:limit_after_max] if params[:limit_after_max]
+      result[:offset] = params[:offset] if params[:offset]    
+      if params[:sortMetric]
+        limit_by_metric = params[:sortMetric]
+      elsif params[:limit_by_metric]
+        limit_by_metric = params[:limit_by_metric]
+      end
+      result[:limit_by_metric] = limit_by_metric if limit_by_metric
+      result[:include_remainder] = params[:include_remainder] if params[:include_remainder]    
+      result[:include_dimension_lists] = params[:include_dimension_lists] if params[:include_dimension_lists]    
+      result[:include_zero_values] = params[:include_zero_values] if params[:include_zero_values]    
 
       if action == "funneling"
         steps = []
@@ -74,6 +88,7 @@ module GrepdataClient
       result[:signature] = params[:signature] if params[:signature]
       result[:restricted] = params[:restricted] if params[:restricted]
       result[:expiration] = params[:expiration] if params[:expiration]
+      
       result
     end
   end
